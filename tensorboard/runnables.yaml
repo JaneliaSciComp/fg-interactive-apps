@@ -1,0 +1,37 @@
+name: TensorBoard
+description: Run TensorBoard to visualize training logs on a cluster node, via Apptainer.
+version: "1.0"
+
+requirements:
+  - apptainer
+
+runnables:
+  - id: serve
+    name: TensorBoard
+    type: service
+    description: >-
+      Start TensorBoard pointed at a log directory and open it in your browser.
+      Runs until you stop it.
+    # Fileglancer picks a free port ($FG_SERVICE_PORT), substitutes it into the
+    # command, and (auto_url) publishes the service URL. TensorBoard runs
+    # directly via `apptainer exec`.
+    auto_url: true
+    container: docker://tensorflow/tensorflow:latest
+    command: >-
+      tensorboard
+      --host 0.0.0.0
+      --port $FG_SERVICE_PORT
+    parameters:
+      - flag: --logdir
+        name: Log Directory
+        type: directory
+        description: >-
+          Directory containing TensorBoard event files (the training run's log
+          directory). Must be within a mounted file share; it is bind-mounted
+          into the container automatically.
+        required: true
+
+    resources:
+      cpus: 2
+      memory: "8 GB"
+      walltime: "08:00"

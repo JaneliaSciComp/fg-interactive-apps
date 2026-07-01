@@ -1,0 +1,46 @@
+name: marimo
+description: Run a marimo reactive Python notebook server on a cluster node, via Apptainer.
+version: "1.0"
+
+requirements:
+  - apptainer
+
+runnables:
+  - id: serve
+    name: marimo
+    type: service
+    description: >-
+      Start a marimo reactive notebook editor and open it in your browser.
+      Runs until you stop it.
+    # Fileglancer picks a free port ($FG_SERVICE_PORT), substitutes it into the
+    # command, and (auto_url) publishes the service URL. marimo runs directly
+    # via `apptainer exec`.
+    auto_url: true
+    container: docker://ghcr.io/marimo-team/marimo:latest-sql
+    command: >-
+      marimo edit
+      --headless
+      --host 0.0.0.0
+      --port $FG_SERVICE_PORT
+      --token-password="$MARIMO_PASSWORD"
+    pre_run: |
+      # Generate a random access password for this session and print it to the
+      # log. It is substituted into the command above (marimo --token-password).
+      export MARIMO_PASSWORD="$(openssl rand -hex 16 2>/dev/null || date +%s%N | sha256sum | cut -c1-32)"
+      echo "===================================================================="
+      echo " marimo access password (paste when prompted in the browser):"
+      echo "   $MARIMO_PASSWORD"
+      echo "===================================================================="
+    parameters:
+      - name: Notebook or Folder
+        type: directory
+        description: >-
+          Notebook file or directory to open in marimo (optional). Must be
+          within a mounted file share; it is bind-mounted into the container
+          automatically.
+        required: false
+
+    resources:
+      cpus: 2
+      memory: "8 GB"
+      walltime: "08:00"

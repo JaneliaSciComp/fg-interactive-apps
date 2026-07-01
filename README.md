@@ -10,6 +10,7 @@ Each app lives in its own subdirectory with its own `runnables.yaml` manifest. F
 |-----|-----------|-------------|
 | **VS Code Server** | [`vscode/`](vscode/) | Browser-based VS Code IDE ([code-server](https://github.com/coder/code-server)) running in an Apptainer container. |
 | **JupyterLab** | [`jupyterlab/`](jupyterlab/) | JupyterLab notebook server (SciPy stack) running in an Apptainer container. |
+| **marimo** | [`marimo/`](marimo/) | [marimo](https://marimo.io/) reactive Python notebook server running in an Apptainer container. |
 
 _More to come (e.g. other notebook servers and viewers)._
 

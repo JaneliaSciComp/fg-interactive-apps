@@ -1,0 +1,48 @@
+name: JupyterLab
+description: Run a JupyterLab notebook server on a cluster node, via Apptainer.
+version: "1.0"
+
+requirements:
+  - apptainer
+
+runnables:
+  - id: serve
+    name: JupyterLab
+    type: service
+    description: >-
+      Start a JupyterLab server (SciPy stack) and open it in your browser.
+      Runs until you stop it.
+    # Fileglancer picks a free port ($FG_SERVICE_PORT), substitutes it into the
+    # command, and (auto_url) publishes the service URL. JupyterLab runs
+    # directly via `apptainer exec`, so no start-notebook wrapper is involved.
+    auto_url: true
+    container: docker://quay.io/jupyter/scipy-notebook:latest
+    command: >-
+      jupyter lab
+      --no-browser
+      --ip=0.0.0.0
+      --port=$FG_SERVICE_PORT
+      --IdentityProvider.token="$JUPYTER_TOKEN"
+    pre_run: |
+      # Generate a random access token for this session and print it to the log.
+      # It is substituted into the command above, so JupyterLab requires it at
+      # login regardless of the container's own defaults.
+      export JUPYTER_TOKEN="$(openssl rand -hex 24 2>/dev/null || date +%s%N | sha256sum | cut -c1-48)"
+      echo "===================================================================="
+      echo " JupyterLab access token (paste when prompted in the browser):"
+      echo "   $JUPYTER_TOKEN"
+      echo "===================================================================="
+    parameters:
+      - flag: --ServerApp.root_dir
+        name: Working Directory
+        type: directory
+        description: >-
+          Directory JupyterLab opens in (optional). Must be within a mounted
+          file share; it is bind-mounted into the container automatically.
+          Defaults to your home directory.
+        required: false
+
+    resources:
+      cpus: 2
+      memory: "16 GB"
+      walltime: "08:00"

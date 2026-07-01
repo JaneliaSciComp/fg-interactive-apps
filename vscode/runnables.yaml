@@ -23,6 +23,7 @@ runnables:
     container: docker://codercom/code-server:latest
     command: >-
       code-server
+      --config "$FG_WORK_DIR/code-server-config.yaml"
       --bind-addr 0.0.0.0:$FG_SERVICE_PORT
       --disable-telemetry
       --disable-update-check
@@ -33,6 +34,12 @@ runnables:
       # via `apptainer exec` skips the image entrypoint, so the known bug where
       # the entrypoint clears PASSWORD does not apply here.)
       export APPTAINERENV_PASSWORD="$(openssl rand -hex 16 2>/dev/null || date +%s%N | sha256sum | cut -c1-32)"
+      # Serve plain HTTP (cert: false). code-server otherwise generates a
+      # self-signed HTTPS cert, which mismatches the http:// URL Fileglancer
+      # publishes and breaks the workbench WebSocket (close 1006). We use a
+      # per-job config file so we neither depend on nor modify the user's
+      # ~/.config/code-server/config.yaml.
+      printf 'cert: false\n' > "$FG_WORK_DIR/code-server-config.yaml"
       echo "=================================================================="
       echo " VS Code Server"
       echo " If Authentication is set to 'password', log in with:"

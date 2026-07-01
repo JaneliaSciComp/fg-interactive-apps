@@ -34,5 +34,6 @@ Open the service, enter that password, and you're in.
 
 ## Notes
 
+- **Plain HTTP:** the app writes a per-job `code-server-config.yaml` with `cert: false` so code-server serves over HTTP, matching the `http://` URL Fileglancer publishes. (code-server's default self-signed HTTPS cert breaks the workbench WebSocket with a `close 1006` error.) The per-job config also means the app neither reads nor modifies your `~/.config/code-server/config.yaml`.
 - **Walltime** defaults to `08:00`. The service runs until you stop it or the walltime expires — raise it for longer sessions.
 - To pin a specific code-server version, change the `container:` tag in `runnables.yaml` (e.g. `docker://codercom/code-server:4.100.2`).

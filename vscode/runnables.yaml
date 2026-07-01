@@ -21,10 +21,17 @@ runnables:
     # run directly via `apptainer exec`, which bypasses the image entrypoint.
     auto_url: true
     container: docker://codercom/code-server:latest
+    # Authentication mode. Defaults to 'password' (recommended — code-server
+    # grants full file and shell access as you). Override to 'none' in the
+    # launch form's Environment tab to disable authentication. Exported before
+    # pre_run so the startup banner can print the password only when it applies.
+    env:
+      CODE_SERVER_AUTH: password
     command: >-
       code-server
       --config "$FG_WORK_DIR/code-server-config.yaml"
       --bind-addr 0.0.0.0:$FG_SERVICE_PORT
+      --auth "$CODE_SERVER_AUTH"
       --disable-telemetry
       --disable-update-check
     pre_run: |
@@ -42,8 +49,12 @@ runnables:
       printf 'cert: false\n' > "$FG_WORK_DIR/code-server-config.yaml"
       echo "=================================================================="
       echo " VS Code Server"
-      echo " If Authentication is set to 'password', log in with:"
-      echo "   $APPTAINERENV_PASSWORD"
+      if [ "$CODE_SERVER_AUTH" = "none" ]; then
+        echo " Authentication is disabled (CODE_SERVER_AUTH=none)."
+      else
+        echo " Log in with this password:"
+        echo "   $APPTAINERENV_PASSWORD"
+      fi
       echo "=================================================================="
     parameters:
       - name: Folder
@@ -52,22 +63,6 @@ runnables:
           Folder to open in VS Code (optional). Must be within a mounted file
           share. If omitted, code-server opens its welcome screen.
         required: false
-
-      - section: Advanced Options
-        description: Authentication and container tuning
-        collapsed: true
-        parameters:
-          - flag: --auth
-            name: Authentication
-            type: enum
-            description: >-
-              password: require the per-session password printed in the job's
-              stdout log (recommended — code-server grants full file and shell
-              access as you). none: no authentication.
-            options:
-              - password
-              - none
-            default: password
 
     resources:
       cpus: 2

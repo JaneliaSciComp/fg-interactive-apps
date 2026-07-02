@@ -6,13 +6,13 @@ Runs [TensorBoard](https://www.tensorflow.org/tensorboard) on a cluster node as 
 
 - The image `docker://tensorflow/tensorflow:2.19.0` (which bundles the `tensorboard` CLI) is pulled to your per-user Apptainer cache on first launch and reused afterwards.
 - Fileglancer picks a free port on the compute node, exposes it as `$FG_SERVICE_PORT`, and TensorBoard binds to it. With `auto_url: true`, the service URL is published automatically.
-- You point it at a **Log Directory**; that directory is bind-mounted into the container automatically. It defaults to `~/.fileglancer/var/tensorstore_logs` (created for you on first launch), so it works out of the box; override it to visualize an existing run elsewhere in a file share.
+- You point it at an **Event Log Directory** — the directory where your training run wrote its TensorBoard event files. That directory is bind-mounted into the container automatically.
 
 ## Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| **Log Directory** | directory | `~/.fileglancer/var/tensorstore_logs` | Directory containing TensorBoard event files. Must be within a mounted file share. Defaults to `~/.fileglancer/var/tensorstore_logs`, which Fileglancer creates for you if it doesn't exist yet; override it to point at any run's log directory. |
+| **Event Log Directory** | directory | *(required)* | Directory containing TensorBoard event files (your training run's log directory). Must be within a mounted file share. |
 
 ## Authentication
 

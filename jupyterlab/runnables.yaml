@@ -29,10 +29,11 @@ runnables:
         name: Working Directory
         type: directory
         description: >-
-          Directory JupyterLab opens in (optional). Must be within a mounted
-          file share; it is bind-mounted into the container automatically.
-          Defaults to your home directory.
+          Directory JupyterLab opens in. Must be within a mounted file share; it
+          is bind-mounted into the container automatically. Defaults to your home
+          directory.
         required: false
+        default: "~"
 
     resources:
       cpus: 2

@@ -16,7 +16,7 @@ marimo authenticates with an access token that can travel in the URL (`?access_t
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| **Notebook or Folder** | directory | work dir | Notebook file or directory to open (optional). Must be within a mounted file share; bind-mounted into the container automatically. |
+| **Notebook or Folder** | directory | home | Notebook file or directory to open. Must be within a mounted file share; bind-mounted into the container automatically. Defaults to your home directory. |
 
 ## Notes
 

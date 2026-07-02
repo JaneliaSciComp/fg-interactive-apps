@@ -27,10 +27,11 @@ runnables:
       - name: Notebook or Folder
         type: directory
         description: >-
-          Notebook file or directory to open in marimo (optional). Must be
-          within a mounted file share; it is bind-mounted into the container
-          automatically.
+          Notebook file or directory to open in marimo. Must be within a mounted
+          file share; it is bind-mounted into the container automatically.
+          Defaults to your home directory.
         required: false
+        default: "~"
 
     resources:
       cpus: 2

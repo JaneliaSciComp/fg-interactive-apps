@@ -30,11 +30,15 @@ runnables:
         description: >-
           Directory containing TensorBoard event files (the training run's log
           directory). Must be within a mounted file share; it is bind-mounted
-          into the container automatically. Defaults to ~/.fileglancer/tensorboard,
-          which Fileglancer creates for you if it doesn't exist yet.
+          into the container automatically. Defaults to
+          ~/.fileglancer/var/tensorstore_logs, which Fileglancer creates for you
+          if it doesn't exist yet.
         required: false
-        default: "~/.fileglancer/tensorboard"
+        default: "~/.fileglancer/var/tensorstore_logs"
         create_if_missing: true
+        # Hidden by default: the default works out of the box. Reveal it via
+        # "Show hidden" to point TensorBoard at an existing run elsewhere.
+        hidden: true
 
     resources:
       cpus: 2

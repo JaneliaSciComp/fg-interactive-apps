@@ -4,14 +4,12 @@ Runs [openvscode-server](https://github.com/gitpod-io/openvscode-server) — ups
 
 ## One-click access
 
-openvscode-server authenticates with a **connection token** that can travel in the URL (`?tkn=…`). At launch the app mints a random per-session token, passes it to the server, and writes the full authenticated URL to Fileglancer's service-URL file. So clicking **Open Service** logs you straight into VS Code — no password prompt — while the session is still protected by the secret token.
-
-Because it publishes its own tokenized URL, this app does **not** use Fileglancer's `auto_url`; it writes `SERVICE_URL_PATH` itself in `pre_run`.
+openvscode-server authenticates with a **connection token** that can travel in the URL (`?tkn=…`). Fileglancer mints a per-session token (`$FG_SERVICE_TOKEN`), the app passes it to the server with `--connection-token`, and `auto_url` + `service_url_suffix: "/?tkn=${FG_SERVICE_TOKEN}"` publish the full authenticated URL once the server is ready. So clicking **Open Service** logs you straight into VS Code — no password prompt — while the session is still protected by the secret token.
 
 ## How it works
 
 - The image `docker://gitpod/openvscode-server:latest` is pulled to your per-user Apptainer cache on first launch and reused afterwards.
-- Fileglancer picks a free port on the compute node (`$FG_SERVICE_PORT`) and provides the hostname (`$FG_HOSTNAME`); the server binds to the port and the published URL points at it.
+- Fileglancer picks a free port on the compute node (`$FG_SERVICE_PORT`), provides the hostname (`$FG_HOSTNAME`), and — once that port is accepting connections — publishes the service URL, so **Open Service** never appears before the server (or the image pull) is ready.
 - The server runs directly via `apptainer exec`. User data and extensions are redirected to `$HOME/.openvscode-server/{data,extensions}` (your home is bind-mounted and writable), so settings and extensions persist across sessions — the container image itself is read-only.
 
 ## Parameters

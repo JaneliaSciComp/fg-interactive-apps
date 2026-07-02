@@ -13,31 +13,20 @@ runnables:
     description: >-
       Start a VS Code (openvscode-server) instance and open it in your browser.
       Runs until you stop it.
+    # Fileglancer publishes the service URL once the port is live (auto_url) and
+    # embeds the connection token it minted ($FG_SERVICE_TOKEN) via
+    # service_url_suffix (?tkn=...), so "Open Service" authenticates in a single
+    # click. The same token is passed to the server with --connection-token.
+    auto_url: true
+    service_url_suffix: "/?tkn=${FG_SERVICE_TOKEN}"
     container: docker://gitpod/openvscode-server:latest
-    # NOTE: auto_url is intentionally NOT set. We write the service URL ourselves
-    # in pre_run so it can embed the connection token (?tkn=...), which lets
-    # "Open Service" authenticate in a single click.
     command: >-
       /home/.openvscode-server/bin/openvscode-server
       --host 0.0.0.0
       --port $FG_SERVICE_PORT
-      --connection-token "$VSCODE_TOKEN"
+      --connection-token "$FG_SERVICE_TOKEN"
       --user-data-dir "$HOME/.openvscode-server/data"
       --extensions-dir "$HOME/.openvscode-server/extensions"
-    pre_run: |
-      # Mint a one-time connection token for this session. openvscode-server
-      # accepts it in the URL as ?tkn=<token>, so we write the full authenticated
-      # URL to SERVICE_URL_PATH ourselves — clicking "Open Service" logs straight
-      # in, no password prompt. $FG_HOSTNAME and $FG_SERVICE_PORT are provided by
-      # Fileglancer for service jobs; $VSCODE_TOKEN is also passed to the server
-      # on the command line above.
-      export VSCODE_TOKEN="$(openssl rand -hex 24 2>/dev/null || date +%s%N | sha256sum | cut -c1-48)"
-      echo "http://$FG_HOSTNAME:$FG_SERVICE_PORT/?tkn=$VSCODE_TOKEN" > "$SERVICE_URL_PATH"
-      echo "=================================================================="
-      echo " VS Code Server"
-      echo " Click 'Open Service' to launch VS Code — one-click access; the"
-      echo " connection token is embedded in the URL, no password needed."
-      echo "=================================================================="
     parameters:
       - flag: --default-folder
         name: Folder

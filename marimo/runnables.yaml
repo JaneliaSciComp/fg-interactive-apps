@@ -10,38 +10,19 @@ runnables:
     description: >-
       Start a marimo reactive notebook editor and open it in your browser.
       Runs until you stop it.
-    # auto_url is intentionally NOT set. We publish the service URL ourselves,
-    # once marimo is actually listening, with the access token embedded so
-    # "Open Service" logs in with one click. Fileglancer provides the free port
-    # ($FG_SERVICE_PORT) and hostname ($FG_HOSTNAME) for service jobs. marimo
-    # runs directly via `apptainer exec`.
+    # Fileglancer publishes the service URL once the port is live (auto_url) and
+    # embeds the token it minted ($FG_SERVICE_TOKEN) via service_url_suffix, so
+    # "Open Service" logs in with one click. marimo accepts the token in the URL
+    # as ?access_token=<token> and via --token-password on the command line.
+    auto_url: true
+    service_url_suffix: "/?access_token=${FG_SERVICE_TOKEN}"
     container: docker://ghcr.io/marimo-team/marimo:latest-sql
     command: >-
       marimo edit
       --headless
       --host 0.0.0.0
       --port $FG_SERVICE_PORT
-      --token-password="$MARIMO_TOKEN"
-    pre_run: |
-      # Mint a one-time access token; marimo accepts it in the URL as
-      # ?access_token=<token>, so a single click authenticates.
-      export MARIMO_TOKEN="$(openssl rand -hex 16 2>/dev/null || date +%s%N | sha256sum | cut -c1-32)"
-      # Publish the URL only once marimo is accepting connections — the image
-      # may still be pulling and the server takes a moment to bind — so the
-      # "Open Service" link never points at a not-yet-ready server. Apptainer
-      # shares the host network, so the container's 0.0.0.0:$FG_SERVICE_PORT is
-      # reachable at 127.0.0.1 here. Runs in the background while marimo starts.
-      (
-        for _ in $(seq 1 1800); do
-          if (exec 3<>"/dev/tcp/127.0.0.1/$FG_SERVICE_PORT") 2>/dev/null; then
-            printf 'http://%s:%s/?access_token=%s' \
-              "$FG_HOSTNAME" "$FG_SERVICE_PORT" "$MARIMO_TOKEN" > "$SERVICE_URL_PATH"
-            break
-          fi
-          sleep 1
-        done
-      ) &
-      echo "Starting marimo — the service link will appear once it is ready."
+      --token-password="$FG_SERVICE_TOKEN"
     parameters:
       - name: Notebook or Folder
         type: directory

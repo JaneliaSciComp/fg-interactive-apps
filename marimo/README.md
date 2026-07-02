@@ -4,13 +4,13 @@ Runs a [marimo](https://marimo.io/) reactive Python notebook server on a cluster
 
 ## One-click access
 
-marimo authenticates with an access token that can travel in the URL (`?access_token=…`). At launch the app mints a random per-session token, passes it to marimo, and — once marimo is actually accepting connections — writes the full authenticated URL to Fileglancer's service-URL file. So the **Open Service** link appears only when the server is ready (not while the image is still pulling), and clicking it logs you straight in.
+marimo authenticates with an access token that can travel in the URL (`?access_token=…`). Fileglancer mints a per-session token (`$FG_SERVICE_TOKEN`), the app passes it to marimo with `--token-password`, and `auto_url` + `service_url_suffix: "/?access_token=${FG_SERVICE_TOKEN}"` publish the full authenticated URL once marimo is accepting connections. So the **Open Service** link appears only when the server is ready (not while the image is still pulling), and clicking it logs you straight in.
 
 ## How it works
 
 - The image `docker://ghcr.io/marimo-team/marimo:latest-sql` (marimo with SQL/DuckDB support) is pulled to your per-user Apptainer cache on first launch and reused afterwards.
-- Fileglancer picks a free port on the compute node (`$FG_SERVICE_PORT`) and provides the hostname (`$FG_HOSTNAME`); marimo binds to the port and the published URL points at it.
-- marimo is started with `marimo edit --headless` via `apptainer exec`. A background readiness probe waits for the port to accept connections before publishing the URL, so it does not use `auto_url`. Your home directory is bind-mounted, so marimo's config persists across sessions.
+- Fileglancer picks a free port on the compute node (`$FG_SERVICE_PORT`), provides the hostname (`$FG_HOSTNAME`), and publishes the service URL only once that port is accepting connections — so **Open Service** never appears before marimo (or the image pull) is ready.
+- marimo is started with `marimo edit --headless` via `apptainer exec`. Your home directory is bind-mounted, so marimo's config persists across sessions.
 
 ## Parameters
 

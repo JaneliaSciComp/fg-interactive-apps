@@ -10,26 +10,20 @@ runnables:
     description: >-
       Start a JupyterLab server (SciPy stack) and open it in your browser.
       Runs until you stop it.
-    # Fileglancer picks a free port ($FG_SERVICE_PORT), substitutes it into the
-    # command, and (auto_url) publishes the service URL. JupyterLab runs
+    # Fileglancer publishes the service URL once the port is live (auto_url) and
+    # embeds the token it minted ($FG_SERVICE_TOKEN) via service_url_suffix
+    # (/lab?token=...), so "Open Service" logs in with one click. The same token
+    # is enforced on the server with --IdentityProvider.token. JupyterLab runs
     # directly via `apptainer exec`, so no start-notebook wrapper is involved.
     auto_url: true
+    service_url_suffix: "/lab?token=${FG_SERVICE_TOKEN}"
     container: docker://quay.io/jupyter/scipy-notebook:latest
     command: >-
       jupyter lab
       --no-browser
       --ip=0.0.0.0
       --port=$FG_SERVICE_PORT
-      --IdentityProvider.token="$JUPYTER_TOKEN"
-    pre_run: |
-      # Generate a random access token for this session and print it to the log.
-      # It is substituted into the command above, so JupyterLab requires it at
-      # login regardless of the container's own defaults.
-      export JUPYTER_TOKEN="$(openssl rand -hex 24 2>/dev/null || date +%s%N | sha256sum | cut -c1-48)"
-      echo "===================================================================="
-      echo " JupyterLab access token (paste when prompted in the browser):"
-      echo "   $JUPYTER_TOKEN"
-      echo "===================================================================="
+      --IdentityProvider.token="$FG_SERVICE_TOKEN"
     parameters:
       - flag: --ServerApp.root_dir
         name: Working Directory

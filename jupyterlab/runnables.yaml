@@ -1,7 +1,5 @@
 name: JupyterLab
 description: Run a JupyterLab notebook server on a cluster node, via Apptainer.
-version: "1.0"
-
 requirements:
   - apptainer
 

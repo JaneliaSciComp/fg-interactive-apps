@@ -1,7 +1,5 @@
 name: TensorBoard
 description: Run TensorBoard to visualize training logs on a cluster node, via Apptainer.
-version: "1.0"
-
 requirements:
   - apptainer
 

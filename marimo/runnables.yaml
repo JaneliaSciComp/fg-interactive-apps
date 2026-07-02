@@ -1,7 +1,5 @@
 name: marimo
 description: Run a marimo reactive Python notebook server on a cluster node, via Apptainer.
-version: "1.0"
-
 requirements:
   - apptainer
 

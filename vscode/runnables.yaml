@@ -1,7 +1,5 @@
 name: OpenVSCode
 description: Run a browser-based VS Code IDE (openvscode-server) on a cluster node, via Apptainer.
-version: "2.0"
-
 # openvscode-server is pulled and run entirely inside an Apptainer container, so
 # the only host requirement is Apptainer itself. The container is cached per-user
 # under ~/.fileglancer/apptainer_cache on first launch and reused afterwards.

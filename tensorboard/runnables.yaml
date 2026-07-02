@@ -7,7 +7,7 @@ requirements:
 
 runnables:
   - id: serve
-    name: TensorBoard
+    name: Server
     type: service
     description: >-
       Start TensorBoard pointed at a log directory and open it in your browser.

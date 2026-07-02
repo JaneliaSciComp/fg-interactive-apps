@@ -8,7 +8,7 @@ Each app lives in its own subdirectory with its own `runnables.yaml` manifest. F
 
 | App | Directory | Description |
 |-----|-----------|-------------|
-| **VS Code Server** | [`vscode/`](vscode/) | Browser-based VS Code IDE ([openvscode-server](https://github.com/gitpod-io/openvscode-server)) running in an Apptainer container, with one-click tokenized access. |
+| **OpenVSCode** | [`vscode/`](vscode/) | Browser-based VS Code IDE ([openvscode-server](https://github.com/gitpod-io/openvscode-server)) running in an Apptainer container, with one-click tokenized access. |
 | **JupyterLab** | [`jupyterlab/`](jupyterlab/) | JupyterLab notebook server (SciPy stack) running in an Apptainer container. |
 | **marimo** | [`marimo/`](marimo/) | [marimo](https://marimo.io/) reactive Python notebook server running in an Apptainer container. |
 | **TensorBoard** | [`tensorboard/`](tensorboard/) | [TensorBoard](https://www.tensorflow.org/tensorboard) training-log dashboard running in an Apptainer container. |

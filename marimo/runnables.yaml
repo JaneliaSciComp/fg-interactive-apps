@@ -7,7 +7,7 @@ requirements:
 
 runnables:
   - id: serve
-    name: marimo
+    name: Server
     type: service
     description: >-
       Start a marimo reactive notebook editor and open it in your browser.

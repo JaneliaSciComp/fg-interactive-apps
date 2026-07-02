@@ -7,7 +7,7 @@ requirements:
 
 runnables:
   - id: serve
-    name: JupyterLab
+    name: Server
     type: service
     description: >-
       Start a JupyterLab server (SciPy stack) and open it in your browser.

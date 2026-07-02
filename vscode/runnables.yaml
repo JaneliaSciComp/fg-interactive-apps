@@ -1,4 +1,4 @@
-name: VS Code Server
+name: OpenVSCode
 description: Run a browser-based VS Code IDE (openvscode-server) on a cluster node, via Apptainer.
 version: "2.0"
 
@@ -10,7 +10,7 @@ requirements:
 
 runnables:
   - id: serve
-    name: VS Code Server
+    name: Server
     type: service
     description: >-
       Start a VS Code (openvscode-server) instance and open it in your browser.

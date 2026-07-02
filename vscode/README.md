@@ -1,4 +1,4 @@
-# VS Code Server
+# OpenVSCode
 
 Runs [openvscode-server](https://github.com/gitpod-io/openvscode-server) — upstream VS Code in the browser — on a cluster node as a Fileglancer **service**, entirely inside an [Apptainer](https://apptainer.org/) container. The only host requirement is Apptainer.
 

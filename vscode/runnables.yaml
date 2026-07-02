@@ -1,9 +1,9 @@
 name: VS Code Server
-description: Run a browser-based VS Code IDE (code-server) on a cluster node, via Apptainer.
-version: "1.0"
+description: Run a browser-based VS Code IDE (openvscode-server) on a cluster node, via Apptainer.
+version: "2.0"
 
-# code-server is pulled and run entirely inside an Apptainer container, so the
-# only host requirement is Apptainer itself. The container is cached per-user
+# openvscode-server is pulled and run entirely inside an Apptainer container, so
+# the only host requirement is Apptainer itself. The container is cached per-user
 # under ~/.fileglancer/apptainer_cache on first launch and reused afterwards.
 requirements:
   - apptainer
@@ -13,55 +13,40 @@ runnables:
     name: VS Code Server
     type: service
     description: >-
-      Start a code-server (VS Code) instance and open it in your browser.
+      Start a VS Code (openvscode-server) instance and open it in your browser.
       Runs until you stop it.
-    # Fileglancer picks a free port on the compute node ($FG_SERVICE_PORT),
-    # substitutes it into the command, and (auto_url) writes the service URL for
-    # us — so no launcher script or URL-writing code is needed. code-server is
-    # run directly via `apptainer exec`, which bypasses the image entrypoint.
-    auto_url: true
-    container: docker://codercom/code-server:latest
-    # Authentication mode. Defaults to 'password' (recommended — code-server
-    # grants full file and shell access as you). Override to 'none' in the
-    # launch form's Environment tab to disable authentication. Exported before
-    # pre_run so the startup banner can print the password only when it applies.
-    env:
-      CODE_SERVER_AUTH: password
+    container: docker://gitpod/openvscode-server:latest
+    # NOTE: auto_url is intentionally NOT set. We write the service URL ourselves
+    # in pre_run so it can embed the connection token (?tkn=...), which lets
+    # "Open Service" authenticate in a single click.
     command: >-
-      code-server
-      --config "$FG_WORK_DIR/code-server-config.yaml"
-      --bind-addr 0.0.0.0:$FG_SERVICE_PORT
-      --auth "$CODE_SERVER_AUTH"
-      --disable-telemetry
-      --disable-update-check
+      /home/.openvscode-server/bin/openvscode-server
+      --host 0.0.0.0
+      --port $FG_SERVICE_PORT
+      --connection-token "$VSCODE_TOKEN"
+      --user-data-dir "$HOME/.openvscode-server/data"
+      --extensions-dir "$HOME/.openvscode-server/extensions"
     pre_run: |
-      # Generate a random access password for this session. It is exported as
-      # APPTAINERENV_PASSWORD so Apptainer injects it into the container as
-      # PASSWORD, which code-server reads when --auth password is used. (Running
-      # via `apptainer exec` skips the image entrypoint, so the known bug where
-      # the entrypoint clears PASSWORD does not apply here.)
-      export APPTAINERENV_PASSWORD="$(openssl rand -hex 16 2>/dev/null || date +%s%N | sha256sum | cut -c1-32)"
-      # Serve plain HTTP (cert: false). code-server otherwise generates a
-      # self-signed HTTPS cert, which mismatches the http:// URL Fileglancer
-      # publishes and breaks the workbench WebSocket (close 1006). We use a
-      # per-job config file so we neither depend on nor modify the user's
-      # ~/.config/code-server/config.yaml.
-      printf 'cert: false\n' > "$FG_WORK_DIR/code-server-config.yaml"
+      # Mint a one-time connection token for this session. openvscode-server
+      # accepts it in the URL as ?tkn=<token>, so we write the full authenticated
+      # URL to SERVICE_URL_PATH ourselves — clicking "Open Service" logs straight
+      # in, no password prompt. $FG_HOSTNAME and $FG_SERVICE_PORT are provided by
+      # Fileglancer for service jobs; $VSCODE_TOKEN is also passed to the server
+      # on the command line above.
+      export VSCODE_TOKEN="$(openssl rand -hex 24 2>/dev/null || date +%s%N | sha256sum | cut -c1-48)"
+      echo "http://$FG_HOSTNAME:$FG_SERVICE_PORT/?tkn=$VSCODE_TOKEN" > "$SERVICE_URL_PATH"
       echo "=================================================================="
       echo " VS Code Server"
-      if [ "$CODE_SERVER_AUTH" = "none" ]; then
-        echo " Authentication is disabled (CODE_SERVER_AUTH=none)."
-      else
-        echo " Log in with this password:"
-        echo "   $APPTAINERENV_PASSWORD"
-      fi
+      echo " Click 'Open Service' to launch VS Code — one-click access; the"
+      echo " connection token is embedded in the URL, no password needed."
       echo "=================================================================="
     parameters:
-      - name: Folder
+      - flag: --default-folder
+        name: Folder
         type: directory
         description: >-
           Folder to open in VS Code (optional). Must be within a mounted file
-          share. If omitted, code-server opens its welcome screen.
+          share; it is bind-mounted into the container automatically.
         required: false
 
     resources:

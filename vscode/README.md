@@ -1,42 +1,28 @@
 # VS Code Server
 
-Runs [code-server](https://github.com/coder/code-server) — a full VS Code IDE in the browser — on a cluster node as a Fileglancer **service**. code-server is pulled and executed entirely inside an [Apptainer](https://apptainer.org/) container, so the only host requirement is Apptainer.
+Runs [openvscode-server](https://github.com/gitpod-io/openvscode-server) — upstream VS Code in the browser — on a cluster node as a Fileglancer **service**, entirely inside an [Apptainer](https://apptainer.org/) container. The only host requirement is Apptainer.
+
+## One-click access
+
+openvscode-server authenticates with a **connection token** that can travel in the URL (`?tkn=…`). At launch the app mints a random per-session token, passes it to the server, and writes the full authenticated URL to Fileglancer's service-URL file. So clicking **Open Service** logs you straight into VS Code — no password prompt — while the session is still protected by the secret token.
+
+Because it publishes its own tokenized URL, this app does **not** use Fileglancer's `auto_url`; it writes `SERVICE_URL_PATH` itself in `pre_run`.
 
 ## How it works
 
-- The container image `docker://codercom/code-server:latest` is pulled to your per-user Apptainer cache (`~/.fileglancer/apptainer_cache`) on first launch and reused afterwards.
-- Fileglancer picks a free port on the compute node and exposes it as `$FG_SERVICE_PORT`; code-server binds to it. With `auto_url: true`, Fileglancer writes the service URL and shows an **Open Service** button — no launcher script or URL-writing code is involved.
-- code-server is started with `apptainer exec`, which runs the binary directly and skips the image entrypoint.
-- Your home directory is bind-mounted into the container (Apptainer default), so settings and installed extensions persist under `~/.local/share/code-server` across sessions.
+- The image `docker://gitpod/openvscode-server:latest` is pulled to your per-user Apptainer cache on first launch and reused afterwards.
+- Fileglancer picks a free port on the compute node (`$FG_SERVICE_PORT`) and provides the hostname (`$FG_HOSTNAME`); the server binds to the port and the published URL points at it.
+- The server runs directly via `apptainer exec`. User data and extensions are redirected to `$HOME/.openvscode-server/{data,extensions}` (your home is bind-mounted and writable), so settings and extensions persist across sessions — the container image itself is read-only.
 
 ## Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| **Folder** | directory | — | Folder to open in VS Code (optional). Must be within a mounted file share. It is bind-mounted into the container automatically. |
-
-## Authentication
-
-Authentication is controlled by the **`CODE_SERVER_AUTH`** environment variable, editable in the launch form's **Environment** tab:
-
-- **`password`** (default) — a random password is generated per launch and printed near the top of the job's **stdout log**:
-
-  ```
-  ==================================================================
-   VS Code Server
-   Log in with this password:
-     ab12cd34ef56...
-  ==================================================================
-  ```
-
-  Open the service, enter that password, and you're in.
-
-- **`none`** — no authentication. The banner instead prints that authentication is disabled, and no password is shown.
-
-> **Security note:** code-server grants full file-system and shell access as your user. Prefer `password`. Only use `none` on a trusted, isolated network, and remember the service is reachable at `http://<compute-node>:<port>` for as long as the job runs.
+| **Folder** | directory | — | Folder to open in VS Code (optional, `--default-folder`). Must be within a mounted file share; bind-mounted into the container automatically. |
 
 ## Notes
 
-- **Plain HTTP:** the app writes a per-job `code-server-config.yaml` with `cert: false` so code-server serves over HTTP, matching the `http://` URL Fileglancer publishes. (code-server's default self-signed HTTPS cert breaks the workbench WebSocket with a `close 1006` error.) The per-job config also means the app neither reads nor modifies your `~/.config/code-server/config.yaml`.
+- **Extensions marketplace:** openvscode-server uses [Open VSX](https://open-vsx.org/) rather than Microsoft's marketplace. Most extensions are available there; a few Microsoft-proprietary ones are not.
+- **Security:** anyone with the tokenized URL can access the IDE (which grants full file and shell access as you) while the job runs. Treat the URL as a secret and stop the service when finished.
 - **Walltime** defaults to `08:00`. The service runs until you stop it or the walltime expires — raise it for longer sessions.
-- To pin a specific code-server version, change the `container:` tag in `runnables.yaml` (e.g. `docker://codercom/code-server:4.100.2`).
+- To pin a version, change the `container:` tag in `runnables.yaml` (e.g. `docker://gitpod/openvscode-server:1.100.0`).

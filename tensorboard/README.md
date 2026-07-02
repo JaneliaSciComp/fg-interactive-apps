@@ -4,7 +4,7 @@ Runs [TensorBoard](https://www.tensorflow.org/tensorboard) on a cluster node as 
 
 ## How it works
 
-- The image `docker://tensorflow/tensorflow:latest` (which bundles the `tensorboard` CLI) is pulled to your per-user Apptainer cache on first launch and reused afterwards.
+- The image `docker://tensorflow/tensorflow:2.19.0` (which bundles the `tensorboard` CLI) is pulled to your per-user Apptainer cache on first launch and reused afterwards.
 - Fileglancer picks a free port on the compute node, exposes it as `$FG_SERVICE_PORT`, and TensorBoard binds to it. With `auto_url: true`, the service URL is published automatically.
 - You point it at a **Log Directory**; that directory is bind-mounted into the container automatically.
 
@@ -22,4 +22,4 @@ TensorBoard has no built-in authentication and is read-only. It is reachable at 
 
 - Works with logs from TensorFlow, PyTorch (`torch.utils.tensorboard`), Keras, and anything else that writes TensorBoard event files.
 - **Walltime** defaults to `08:00`; raise it for longer monitoring sessions.
-- To pin a version, change the `container:` tag in `runnables.yaml` (e.g. `docker://tensorflow/tensorflow:2.19.0`).
+- The image is pinned to `2.19.0` on purpose: it is the last `tensorflow/tensorflow` release that bundles the `tensorboard` CLI. TensorFlow 2.20+ (published as `tensorflow_cpu`, which the `:latest` tag now points to) dropped the tensorboard dependency, so `tensorboard` is missing from newer images. To use a different tag, change `container:` in `runnables.yaml`, but keep it at `2.19.0` or older unless you confirm the image still includes `tensorboard`.

@@ -14,7 +14,11 @@ runnables:
     # command, and (auto_url) publishes the service URL. TensorBoard runs
     # directly via `apptainer exec`.
     auto_url: true
-    container: docker://tensorflow/tensorflow:latest
+    # Pinned to 2.19.0: it bundles the `tensorboard` CLI. TensorFlow 2.20+
+    # (published as `tensorflow_cpu`, which `:latest` now points to) dropped
+    # the tensorboard dependency, so `tensorboard` is absent from those images
+    # ("executable file not found in $PATH").
+    container: docker://tensorflow/tensorflow:2.19.0
     command: >-
       tensorboard
       --host 0.0.0.0

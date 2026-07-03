@@ -1,41 +1,42 @@
 name: JupyterLab
 description: Run a JupyterLab notebook server on a cluster node, via Apptainer.
 requirements:
-  - apptainer
+    - apptainer
 
 runnables:
-  - id: serve
-    name: Server
-    type: service
-    description: >-
-      Start a JupyterLab server (SciPy stack) and open it in your browser.
-      Runs until you stop it.
-    # Fileglancer publishes the service URL once the port is live (auto_url) and
-    # embeds the token it minted ($FG_SERVICE_TOKEN) via service_url_suffix
-    # (/lab?token=...), so "Open Service" logs in with one click. The same token
-    # is enforced on the server with --IdentityProvider.token. JupyterLab runs
-    # directly via `apptainer exec`, so no start-notebook wrapper is involved.
-    auto_url: true
-    service_url_suffix: "/lab?token=${FG_SERVICE_TOKEN}"
-    container: docker://quay.io/jupyter/scipy-notebook:latest
-    command: >-
-      jupyter lab
-      --no-browser
-      --ip=0.0.0.0
-      --port=$FG_SERVICE_PORT
-      --IdentityProvider.token="$FG_SERVICE_TOKEN"
-    parameters:
-      - flag: --ServerApp.root_dir
-        name: Working Directory
-        type: directory
-        description: >-
-          Directory JupyterLab opens in. Must be within a mounted file share; it
-          is bind-mounted into the container automatically. Defaults to your home
-          directory.
-        required: false
-        default: "~"
+    - id: serve
+      name: Server
+      type: service
+      description: >-
+          Start a JupyterLab server (SciPy stack) and open it in your browser.
+          Runs until you stop it.
+      # Fileglancer publishes the service URL once the port is live (auto_url) and
+      # embeds the token it minted ($FG_SERVICE_TOKEN) via service_url_suffix
+      # (/lab?token=...), so "Open Service" logs in with one click. The same token
+      # is enforced on the server with --IdentityProvider.token. JupyterLab runs
+      # directly via `apptainer exec`, so no start-notebook wrapper is involved.
+      auto_url: true
+      service_url_suffix: "/lab?token=${FG_SERVICE_TOKEN}"
+      container: docker://quay.io/jupyter/scipy-notebook:latest
+      command: >-
+          jupyter lab
+          --no-browser
+          --ip=0.0.0.0
+          --port=$FG_SERVICE_PORT
+          --IdentityProvider.token="$FG_SERVICE_TOKEN"
+      parameters:
+          - flag: --ServerApp.root_dir
+            name: Working Directory
+            type: directory
+            description: >-
+                Directory JupyterLab opens in. Must be within a mounted file share; it
+                is bind-mounted into the container automatically. Defaults to your home
+                directory.
+            required: false
+            exists: true
+            default: "~"
 
-    resources:
-      cpus: 2
-      memory: "16 GB"
-      walltime: "08:00"
+      resources:
+          cpus: 2
+          memory: "16 GB"
+          walltime: "08:00"

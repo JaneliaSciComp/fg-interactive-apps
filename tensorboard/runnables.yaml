@@ -1,39 +1,40 @@
 name: TensorBoard
 description: Run TensorBoard to visualize training logs on a cluster node, via Apptainer.
 requirements:
-  - apptainer
+    - apptainer
 
 runnables:
-  - id: serve
-    name: Server
-    type: service
-    description: >-
-      Start TensorBoard pointed at a log directory and open it in your browser.
-      Runs until you stop it.
-    # Fileglancer picks a free port ($FG_SERVICE_PORT), substitutes it into the
-    # command, and (auto_url) publishes the service URL. TensorBoard runs
-    # directly via `apptainer exec`.
-    auto_url: true
-    # Pinned to 2.19.0: it bundles the `tensorboard` CLI. TensorFlow 2.20+
-    # (published as `tensorflow_cpu`, which `:latest` now points to) dropped
-    # the tensorboard dependency, so `tensorboard` is absent from those images
-    # ("executable file not found in $PATH").
-    container: docker://tensorflow/tensorflow:2.19.0
-    command: >-
-      tensorboard
-      --host 0.0.0.0
-      --port $FG_SERVICE_PORT
-    parameters:
-      - flag: --logdir
-        name: Event Log Directory
-        type: directory
-        description: >-
-          Directory containing TensorBoard event files (the training run's log
-          directory). Must be within a mounted file share; it is bind-mounted
-          into the container automatically.
-        required: true
+    - id: serve
+      name: Server
+      type: service
+      description: >-
+          Start TensorBoard pointed at a log directory and open it in your browser.
+          Runs until you stop it.
+      # Fileglancer picks a free port ($FG_SERVICE_PORT), substitutes it into the
+      # command, and (auto_url) publishes the service URL. TensorBoard runs
+      # directly via `apptainer exec`.
+      auto_url: true
+      # Pinned to 2.19.0: it bundles the `tensorboard` CLI. TensorFlow 2.20+
+      # (published as `tensorflow_cpu`, which `:latest` now points to) dropped
+      # the tensorboard dependency, so `tensorboard` is absent from those images
+      # ("executable file not found in $PATH").
+      container: docker://tensorflow/tensorflow:2.19.0
+      command: >-
+          tensorboard
+          --host 0.0.0.0
+          --port $FG_SERVICE_PORT
+      parameters:
+          - flag: --logdir
+            name: Event Log Directory
+            type: directory
+            description: >-
+                Directory containing TensorBoard event files (the training run's log
+                directory). Must be within a mounted file share; it is bind-mounted
+                into the container automatically.
+            required: true
+            exists: true
 
-    resources:
-      cpus: 2
-      memory: "8 GB"
-      walltime: "08:00"
+      resources:
+          cpus: 2
+          memory: "8 GB"
+          walltime: "08:00"

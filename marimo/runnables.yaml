@@ -1,39 +1,40 @@
 name: marimo
 description: Run a marimo reactive Python notebook server on a cluster node, via Apptainer.
 requirements:
-  - apptainer
+    - apptainer
 
 runnables:
-  - id: serve
-    name: Server
-    type: service
-    description: >-
-      Start a marimo reactive notebook editor and open it in your browser.
-      Runs until you stop it.
-    # Fileglancer publishes the service URL once the port is live (auto_url) and
-    # embeds the token it minted ($FG_SERVICE_TOKEN) via service_url_suffix, so
-    # "Open Service" logs in with one click. marimo accepts the token in the URL
-    # as ?access_token=<token> and via --token-password on the command line.
-    auto_url: true
-    service_url_suffix: "/?access_token=${FG_SERVICE_TOKEN}"
-    container: docker://ghcr.io/marimo-team/marimo:latest-sql
-    command: >-
-      marimo edit
-      --headless
-      --host 0.0.0.0
-      --port $FG_SERVICE_PORT
-      --token-password="$FG_SERVICE_TOKEN"
-    parameters:
-      - name: Notebook or Folder
-        type: directory
-        description: >-
-          Notebook file or directory to open in marimo. Must be within a mounted
-          file share; it is bind-mounted into the container automatically.
-          Defaults to your home directory.
-        required: false
-        default: "~"
+    - id: serve
+      name: Server
+      type: service
+      description: >-
+          Start a marimo reactive notebook editor and open it in your browser.
+          Runs until you stop it.
+      # Fileglancer publishes the service URL once the port is live (auto_url) and
+      # embeds the token it minted ($FG_SERVICE_TOKEN) via service_url_suffix, so
+      # "Open Service" logs in with one click. marimo accepts the token in the URL
+      # as ?access_token=<token> and via --token-password on the command line.
+      auto_url: true
+      service_url_suffix: "/?access_token=${FG_SERVICE_TOKEN}"
+      container: docker://ghcr.io/marimo-team/marimo:latest-sql
+      command: >-
+          marimo edit
+          --headless
+          --host 0.0.0.0
+          --port $FG_SERVICE_PORT
+          --token-password="$FG_SERVICE_TOKEN"
+      parameters:
+          - name: Notebook or Folder
+            type: directory
+            description: >-
+                Notebook file or directory to open in marimo. Must be within a mounted
+                file share; it is bind-mounted into the container automatically.
+                Defaults to your home directory.
+            required: false
+            exists: true
+            default: "~"
 
-    resources:
-      cpus: 2
-      memory: "8 GB"
-      walltime: "08:00"
+      resources:
+          cpus: 2
+          memory: "8 GB"
+          walltime: "08:00"

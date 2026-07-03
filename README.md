@@ -1,6 +1,6 @@
 # Fileglancer Interactive Apps
 
-A collection of interactive [Fileglancer](https://github.com/JaneliaSciComp/fileglancer) apps — long-running, browser-based tools (IDEs, notebooks, viewers) that run as services on the cluster.
+A collection of interactive [Fileglancer](https://github.com/JaneliaSciComp/fileglancer) apps. These are long-running, browser-based tools (IDEs, notebooks, viewers) that run as services on the cluster.
 
 Each app lives in its own subdirectory with its own `runnables.yaml` manifest. Fileglancer walks the repository, registers a separate app for every `runnables.yaml` it finds, and runs each from the subdirectory that contains its manifest.
 
@@ -12,8 +12,6 @@ Each app lives in its own subdirectory with its own `runnables.yaml` manifest. F
 | **JupyterLab** | [`jupyterlab/`](jupyterlab/) | JupyterLab notebook server (SciPy stack) running in an Apptainer container. |
 | **marimo** | [`marimo/`](marimo/) | [marimo](https://marimo.io/) reactive Python notebook server running in an Apptainer container. |
 | **TensorBoard** | [`tensorboard/`](tensorboard/) | [TensorBoard](https://www.tensorflow.org/tensorboard) training-log dashboard running in an Apptainer container. |
-
-_More to come (e.g. remote desktop for GUI tools, and imaging viewers)._
 
 ## Using these apps in Fileglancer
 

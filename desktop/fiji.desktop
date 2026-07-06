@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Fiji
+Comment=Fiji is just ImageJ - image processing and analysis
+Exec=fiji %F
+Icon=/opt/fiji/images/icon.png
+Terminal=false
+Categories=Science;ImageProcessing;Graphics;
+StartupNotify=true

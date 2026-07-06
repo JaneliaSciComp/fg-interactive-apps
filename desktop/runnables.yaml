@@ -1,0 +1,37 @@
+name: Remote Desktop
+description: Run a full Linux desktop (XFCE) with Fiji preinstalled on a cluster node, via Apptainer.
+requirements:
+    - apptainer
+
+runnables:
+    - id: serve
+      name: Desktop
+      type: service
+      description: >-
+          Start an XFCE desktop with Fiji preinstalled and open it in your
+          browser. Your home directory is mounted and writable. Runs until
+          you stop it.
+      # Fileglancer publishes the service URL once the port is live (auto_url)
+      # and embeds the token it minted ($FG_SERVICE_TOKEN) via
+      # service_url_suffix, so "Open Service" connects in one click. Inside
+      # the container, websockify only tunnels WebSocket connections whose
+      # ?token= names the VNC unix socket in a private 0700 directory; see
+      # start-desktop.sh for the full security model.
+      auto_url: true
+      service_url_suffix: "/vnc.html?autoconnect=true&resize=remote&path=websockify%3Ftoken%3D${FG_SERVICE_TOKEN}"
+      container: docker://ghcr.io/janeliascicomp/fg-interactive-apps/desktop:1.0.0
+      command: /opt/fg-desktop/start-desktop.sh
+      parameters:
+          - name: Data Folder
+            type: directory
+            description: >-
+                Optional folder to show on the desktop. Must be within a
+                mounted file share; it is bind-mounted into the container
+                automatically. Your home directory is always available.
+            required: false
+            exists: true
+
+      resources:
+          cpus: 4
+          memory: "16 GB"
+          walltime: "08:00"

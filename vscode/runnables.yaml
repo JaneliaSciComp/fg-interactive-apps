@@ -15,16 +15,21 @@ runnables:
           Runs until you stop it.
       # Fileglancer publishes the service URL once the port is live (auto_url) and
       # embeds the connection token it minted ($FG_SERVICE_TOKEN) via
-      # service_url_suffix (?tkn=...), so "Open Service" authenticates in a single
-      # click. The same token is passed to the server with --connection-token.
+      # service_url_suffix (?tkn=...), so "Open Service" authenticates in a
+      # single click. The same token is written to a private (mode 0600) temp
+      # file and passed to the server via --connection-token-file rather than
+      # --connection-token, so it never appears in the process's argv (visible
+      # to other users via `ps` on a shared node).
       auto_url: true
       service_url_suffix: "/?tkn=${FG_SERVICE_TOKEN}"
       container: docker://gitpod/openvscode-server:latest
       command: >-
+          TOKEN_FILE=$(mktemp) &&
+          printf '%s' "$FG_SERVICE_TOKEN" > "$TOKEN_FILE" &&
           /home/.openvscode-server/bin/openvscode-server
           --host 0.0.0.0
           --port $FG_SERVICE_PORT
-          --connection-token "$FG_SERVICE_TOKEN"
+          --connection-token-file "$TOKEN_FILE"
           --user-data-dir "$HOME/.openvscode-server/data"
           --extensions-dir "$HOME/.openvscode-server/extensions"
       parameters:

@@ -12,18 +12,21 @@ runnables:
           Runs until you stop it.
       # Fileglancer publishes the service URL once the port is live (auto_url) and
       # embeds the token it minted ($FG_SERVICE_TOKEN) via service_url_suffix
-      # (/lab?token=...), so "Open Service" logs in with one click. The same token
-      # is enforced on the server with --IdentityProvider.token. JupyterLab runs
-      # directly via `apptainer exec`, so no start-notebook wrapper is involved.
+      # (/lab?token=...), so "Open Service" logs in with one click. The same
+      # token is enforced on the server via the JUPYTER_TOKEN environment
+      # variable (jupyter_server's IdentityProvider reads it natively), rather
+      # than a CLI flag, so it never appears in the process's argv (visible to
+      # other users via `ps` on a shared node). JupyterLab runs directly via
+      # `apptainer exec`, so no start-notebook wrapper is involved.
       auto_url: true
       service_url_suffix: "/lab?token=${FG_SERVICE_TOKEN}"
       container: docker://quay.io/jupyter/scipy-notebook:latest
       command: >-
+          JUPYTER_TOKEN="$FG_SERVICE_TOKEN"
           jupyter lab
           --no-browser
           --ip=0.0.0.0
           --port=$FG_SERVICE_PORT
-          --IdentityProvider.token="$FG_SERVICE_TOKEN"
       parameters:
           - flag: --ServerApp.root_dir
             name: Working Directory

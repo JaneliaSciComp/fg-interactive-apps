@@ -21,7 +21,8 @@ runnables:
       # server reads it as /dev/fd/3 via --connection-token-file rather than
       # --connection-token, so it never appears in the process's argv (visible
       # to other users via `ps` on a shared node) and no token file outlives
-      # the process. Fileglancer appends `command:` directly to `apptainer exec`
+      # the process. FG_SERVICE_TOKEN is unset before exec so the terminals
+      # and extension hosts the IDE spawns don't inherit it. Fileglancer appends `command:` directly to `apptainer exec`
       # with no shell of its own, so this uses an explicit `sh -c '...' _`: the
       # single quotes keep the host job script from expanding $FG_SERVICE_TOKEN
       # (that happens inside the container instead), and the trailing `_`
@@ -32,7 +33,7 @@ runnables:
       command: >-
           sh -c 'F=$(mktemp) || exit 1;
           printf %s "$FG_SERVICE_TOKEN" > "$F";
-          exec 3<"$F"; rm -f "$F";
+          exec 3<"$F"; rm -f "$F"; unset FG_SERVICE_TOKEN;
           exec /home/.openvscode-server/bin/openvscode-server --host 0.0.0.0 --port "$FG_SERVICE_PORT" --connection-token-file /dev/fd/3 --user-data-dir "$HOME/.openvscode-server/data" --extensions-dir "$HOME/.openvscode-server/extensions" "$@"' _
       parameters:
           - flag: --default-folder

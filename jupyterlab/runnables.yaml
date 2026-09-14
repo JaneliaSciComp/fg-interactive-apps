@@ -19,7 +19,9 @@ runnables:
       # before the server starts, and the server reads it as /dev/fd/3. It
       # therefore never appears in the process's argv (visible to other users
       # via `ps` on a shared node) and no token file outlives the process.
-      # Fileglancer appends `command:` directly to `apptainer exec` with no
+      # FG_SERVICE_TOKEN is unset before exec so the kernels and terminals
+      # Jupyter spawns don't inherit it (unlike JUPYTER_TOKEN, JUPYTER_TOKEN_FILE
+      # only names a path). Fileglancer appends `command:` directly to `apptainer exec` with no
       # shell of its own, so this uses an explicit `sh -c '...' _`: the single
       # quotes keep the host job script from expanding $FG_SERVICE_TOKEN (that
       # happens inside the container instead), and the trailing `_` occupies
@@ -31,7 +33,7 @@ runnables:
       command: >-
           sh -c 'F=$(mktemp) || exit 1;
           printf %s "$FG_SERVICE_TOKEN" > "$F";
-          exec 3<"$F"; rm -f "$F";
+          exec 3<"$F"; rm -f "$F"; unset FG_SERVICE_TOKEN;
           JUPYTER_TOKEN_FILE=/dev/fd/3 exec jupyter lab --no-browser --ip=0.0.0.0 --port="$FG_SERVICE_PORT" "$@"' _
       parameters:
           - flag: --ServerApp.root_dir

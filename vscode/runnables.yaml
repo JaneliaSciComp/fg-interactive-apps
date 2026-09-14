@@ -17,23 +17,23 @@ runnables:
       # embeds the connection token it minted ($FG_SERVICE_TOKEN) via
       # service_url_suffix (?tkn=...), so "Open Service" authenticates in a
       # single click. The same token is written to a private (mode 0600) temp
-      # file and passed to the server via --connection-token-file rather than
+      # file that is opened on fd 3 and unlinked before the server starts; the
+      # server reads it as /dev/fd/3 via --connection-token-file rather than
       # --connection-token, so it never appears in the process's argv (visible
-      # to other users via `ps` on a shared node). Fileglancer appends
-      # `command:` directly to `apptainer exec` with no shell of its own, so
-      # this uses an explicit `sh -c '...' _`: the single quotes keep the host
-      # job script from expanding $FG_SERVICE_TOKEN and from short-circuiting
-      # on `&&` (both happen inside the container instead), the trap removes
-      # the temp file on exit, and the trailing `_` occupies $0 so appended
-      # `parameters:` land in "$@" and get forwarded.
+      # to other users via `ps` on a shared node) and no token file outlives
+      # the process. Fileglancer appends `command:` directly to `apptainer exec`
+      # with no shell of its own, so this uses an explicit `sh -c '...' _`: the
+      # single quotes keep the host job script from expanding $FG_SERVICE_TOKEN
+      # (that happens inside the container instead), and the trailing `_`
+      # occupies $0 so appended `parameters:` land in "$@" and get forwarded.
       auto_url: true
       service_url_suffix: "/?tkn=${FG_SERVICE_TOKEN}"
       container: docker://gitpod/openvscode-server:latest
       command: >-
-          sh -c 'TOKEN_FILE=$(mktemp);
-          trap "rm -f \"$TOKEN_FILE\"" EXIT;
-          printf %s "$FG_SERVICE_TOKEN" > "$TOKEN_FILE";
-          exec /home/.openvscode-server/bin/openvscode-server --host 0.0.0.0 --port "$FG_SERVICE_PORT" --connection-token-file "$TOKEN_FILE" --user-data-dir "$HOME/.openvscode-server/data" --extensions-dir "$HOME/.openvscode-server/extensions" "$@"' _
+          sh -c 'F=$(mktemp) || exit 1;
+          printf %s "$FG_SERVICE_TOKEN" > "$F";
+          exec 3<"$F"; rm -f "$F";
+          exec /home/.openvscode-server/bin/openvscode-server --host 0.0.0.0 --port "$FG_SERVICE_PORT" --connection-token-file /dev/fd/3 --user-data-dir "$HOME/.openvscode-server/data" --extensions-dir "$HOME/.openvscode-server/extensions" "$@"' _
       parameters:
           - flag: --default-folder
             name: Folder

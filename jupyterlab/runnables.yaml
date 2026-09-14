@@ -13,23 +13,26 @@ runnables:
       # Fileglancer publishes the service URL once the port is live (auto_url) and
       # embeds the token it minted ($FG_SERVICE_TOKEN) via service_url_suffix
       # (/lab?token=...), so "Open Service" logs in with one click. The same
-      # token is enforced on the server via the JUPYTER_TOKEN environment
-      # variable (jupyter_server's IdentityProvider reads it natively), rather
-      # than a CLI flag, so it never appears in the process's argv (visible to
-      # other users via `ps` on a shared node). Fileglancer appends `command:`
-      # directly to `apptainer exec` with no shell of its own, so this uses an
-      # explicit `sh -c '...' _`: the single quotes keep the host job script
-      # from expanding $FG_SERVICE_TOKEN (it's expanded inside the container
-      # instead, from the environment Apptainer passes through by default),
-      # and the trailing `_` occupies $0 so appended `parameters:` land in
-      # "$@" and get forwarded. `exec` keeps the server a direct child of the
-      # job script.
+      # token is enforced on the server via JUPYTER_TOKEN_FILE, which
+      # jupyter_server's IdentityProvider reads natively: the token is written
+      # to a private (mode 0600) temp file that is opened on fd 3 and unlinked
+      # before the server starts, and the server reads it as /dev/fd/3. It
+      # therefore never appears in the process's argv (visible to other users
+      # via `ps` on a shared node) and no token file outlives the process.
+      # Fileglancer appends `command:` directly to `apptainer exec` with no
+      # shell of its own, so this uses an explicit `sh -c '...' _`: the single
+      # quotes keep the host job script from expanding $FG_SERVICE_TOKEN (that
+      # happens inside the container instead), and the trailing `_` occupies
+      # $0 so appended `parameters:` land in "$@" and get forwarded. `exec`
+      # keeps the server a direct child of the job script.
       auto_url: true
       service_url_suffix: "/lab?token=${FG_SERVICE_TOKEN}"
       container: docker://quay.io/jupyter/scipy-notebook:latest
       command: >-
-          sh -c 'export JUPYTER_TOKEN="$FG_SERVICE_TOKEN";
-          exec jupyter lab --no-browser --ip=0.0.0.0 --port="$FG_SERVICE_PORT" "$@"' _
+          sh -c 'F=$(mktemp) || exit 1;
+          printf %s "$FG_SERVICE_TOKEN" > "$F";
+          exec 3<"$F"; rm -f "$F";
+          JUPYTER_TOKEN_FILE=/dev/fd/3 exec jupyter lab --no-browser --ip=0.0.0.0 --port="$FG_SERVICE_PORT" "$@"' _
       parameters:
           - flag: --ServerApp.root_dir
             name: Working Directory

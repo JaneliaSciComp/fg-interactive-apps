@@ -12,17 +12,28 @@ runnables:
           Runs until you stop it.
       # Fileglancer publishes the service URL once the port is live (auto_url) and
       # embeds the token it minted ($FG_SERVICE_TOKEN) via service_url_suffix, so
-      # "Open Service" logs in with one click. marimo accepts the token in the URL
-      # as ?access_token=<token> and via --token-password on the command line.
+      # "Open Service" logs in with one click. marimo accepts the token in the
+      # URL as ?access_token=<token>. On the server side, the token is written
+      # to a private (mode 0600) temp file that is opened on fd 3 and unlinked
+      # before the server starts; marimo reads it as /dev/fd/3 via
+      # --token-password-file rather than --token-password, so it never appears
+      # in the process's argv (visible to other users via `ps` on a shared node)
+      # and no token file outlives the process. FG_SERVICE_TOKEN is unset
+      # before exec so the kernels marimo spawns don't inherit it.
+      # Fileglancer appends `command:`
+      # directly to `apptainer exec` with no shell of its own, so this uses an
+      # explicit `sh -c '...' _`: the single quotes keep the host job script
+      # from expanding $FG_SERVICE_TOKEN (that happens inside the container
+      # instead), and the trailing `_` occupies $0 so appended `parameters:`
+      # land in "$@" and get forwarded.
       auto_url: true
       service_url_suffix: "/?access_token=${FG_SERVICE_TOKEN}"
       container: docker://ghcr.io/marimo-team/marimo:latest-sql
       command: >-
-          marimo edit
-          --headless
-          --host 0.0.0.0
-          --port $FG_SERVICE_PORT
-          --token-password="$FG_SERVICE_TOKEN"
+          sh -c 'F=$(mktemp) || exit 1;
+          printf %s "$FG_SERVICE_TOKEN" > "$F";
+          exec 3<"$F"; rm -f "$F"; unset FG_SERVICE_TOKEN;
+          exec marimo edit --headless --host 0.0.0.0 --port "$FG_SERVICE_PORT" --token-password-file /dev/fd/3 "$@"' _
       parameters:
           - name: Notebook or Folder
             type: directory
